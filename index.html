@@ -1,4 +1,386 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f172a">
 
+<!-- آیکون تب مرورگر (Favicon) -->
+<link rel="icon" type="image/jpeg" href="images.jpg">
+
+<!-- آیکون صفحه اصلی آیفون (Apple Touch Icon) -->
+<link rel="apple-touch-icon" href="images.jpg">
+
+<title>AYT Livrare</title>
+<style>
+  /* --- متغیرهای رنگی و فونت مدرن --- */
+  :root {
+    --bg-base: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-hover: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #d4af37; /* رنگ طلایی هماهنگ با لوگو */
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.15);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.15);
+    --border-radius: 16px;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    margin: 0; font-family: var(--font-family);
+    background-color: var(--bg-base); color: var(--text-main);
+    min-height: 100vh; padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    background-image: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  /* --- هدر بالا --- */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; position: sticky; top: 0; z-index: 50;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .menu-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-main); width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .menu-btn:active { background: rgba(255,255,255,0.15); }
+  .menu-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+  /* --- لوگو در هدر --- */
+  .header-center {
+    display: flex; align-items: center; gap: 10px; flex: 1;
+    justify-content: center; overflow: hidden;
+  }
+  .header-logo {
+    width: 36px; height: 36px; border-radius: 50%;
+    object-fit: cover; background: #000;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+  .header-title {
+    font-size: 17px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* --- منوی کشویی (Drawer) --- */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed; top: 0; left: -300px; width: 290px; height: 100vh;
+    background: var(--bg-base); z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+  }
+  .drawer.open { left: 0; }
+
+  .drawer-header {
+    padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .drawer-logo {
+    width: 40px; height: 40px; border-radius: 50%;
+    object-fit: cover; background: #000;
+    border: 2px solid var(--accent);
+  }
+  .drawer-title { font-size: 18px; font-weight: 700; color: var(--accent); flex: 1; }
+  .close-btn {
+    background: transparent; border: none; color: var(--text-muted);
+    font-size: 24px; cursor: pointer; padding: 4px;
+  }
+
+  .drawer-list {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .driver-item {
+    background: var(--bg-card); border-radius: 12px;
+    padding: 16px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.2s;
+  }
+  .driver-item:active { background: var(--bg-card-hover); }
+  .driver-item.active {
+    border-color: var(--accent);
+    background: rgba(212, 175, 55, 0.1);
+  }
+  
+  .driver-name { font-size: 15px; font-weight: 600; color: var(--text-main); }
+  .driver-badge {
+    background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; color: var(--text-muted);
+  }
+  .driver-item.active .driver-badge { background: var(--accent); color: #0f172a; }
+
+  /* --- بدنه اصلی --- */
+  .container { padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+  
+  .store {
+    background: var(--bg-card); border-radius: var(--border-radius);
+    margin-bottom: 16px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .store:active { transform: scale(0.98); }
+  
+  .store-header {
+    padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; gap: 12px; transition: background 0.3s ease;
+  }
+  .store-header:hover { background: var(--bg-card-hover); }
+  
+  .store-info { flex: 1; min-width: 0; }
+  .store-name {
+    font-size: 16px; font-weight: 700; margin-bottom: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  }
+  .status-badge.done { background: var(--success-bg); color: var(--success); }
+  .status-badge.wait { background: var(--warning-bg); color: var(--warning); }
+  
+  .icon-arrow {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .icon-arrow svg { width: 16px; height: 16px; fill: var(--text-muted); transition: fill 0.3s; }
+  .store.open .icon-arrow { transform: rotate(180deg); background: rgba(255,255,255,0.1); }
+  .store.open .icon-arrow svg { fill: var(--text-main); }
+
+  /* --- بدنه محصولات --- */
+  .store-body {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(0,0,0,0.2);
+  }
+  .store.open .store-body { grid-template-rows: 1fr; }
+  
+  .store-body-inner {
+    overflow: hidden; padding: 0 16px; opacity: 0;
+    transition: opacity 0.3s ease, padding 0.3s ease;
+  }
+  .store.open .store-body-inner { padding: 16px; opacity: 1; }
+
+  .product {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: rgba(255,255,255,0.03);
+    border-radius: 10px; margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.02);
+  }
+  .product:last-child { margin-bottom: 0; }
+  
+  .pname { font-size: 14px; color: var(--text-muted); font-weight: 500; flex: 1; padding-right: 12px; word-break: break-word; }
+  .pval {
+    font-size: 15px; font-weight: 700; color: var(--accent);
+    background: rgba(212, 175, 55, 0.1); padding: 4px 12px; border-radius: 8px; white-space: nowrap;
+  }
+
+  /* --- حالت‌های خالی و لودینگ --- */
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 15px; }
+  
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 20px; }
+  .spinner {
+    width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  .error {
+    background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5; padding: 20px; border-radius: var(--border-radius);
+    text-align: center; font-weight: 500; margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- هدر بالا -->
+<header class="header">
+  <button class="menu-btn" onclick="toggleDrawer()">
+    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
+  
+  <div class="header-center">
+    <img src="images.jpg" alt="AYT Logo" class="header-logo">
+    <div class="header-title" id="headerTitle">Se încarcă...</div>
+  </div>
+  
+  <div style="width: 44px;"></div>
+</header>
+
+<!-- منوی کشویی -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <img src="images.jpg" alt="AYT Logo" class="drawer-logo">
+    <div class="drawer-title">Selectează Cursa</div>
+    <button class="close-btn" onclick="toggleDrawer()">✕</button>
+  </div>
+  <div class="drawer-list" id="drawerList"></div>
+</div>
+
+<!-- محتوای اصلی -->
+<div class="container" id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div style="color: var(--text-muted); font-size: 14px; font-weight: 500;">Se încarcă datele...</div>
+  </div>
+</div>
+
+<script>
+// ⚠️ لینک API خودتون رو اینجا بذارید
+const API_URL = "لینک_خودتان_را_اینجا_بگذارید";
+
+let courses = [];
+let activeTab = 0;
+
+async function loadData() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    courses = data.courses || [];
+    render();
+  } catch (e) {
+    document.getElementById("app").innerHTML = `
+      <div class="error">
+        Eroare de conexiune.<br>Vă rugăm verificați internetul.
+      </div>`;
+  }
+}
+
+function toggleDrawer() {
+  const drawer = document.getElementById("drawer");
+  const overlay = document.getElementById("drawerOverlay");
+  const isOpen = drawer.classList.contains("open");
+  
+  if (isOpen) {
+    drawer.classList.remove("open");
+    overlay.classList.remove("open");
+  } else {
+    drawer.classList.add("open");
+    overlay.classList.add("open");
+  }
+}
+
+function setTab(index) {
+  activeTab = index;
+  render();
+  toggleDrawer();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function render() {
+  const appEl = document.getElementById("app");
+  const drawerListEl = document.getElementById("drawerList");
+  const headerTitleEl = document.getElementById("headerTitle");
+
+  if (!courses.length) {
+    headerTitleEl.textContent = "Fără date";
+    drawerListEl.innerHTML = "";
+    appEl.innerHTML = `<div class="empty">Nu există curse disponibile</div>`;
+    return;
+  }
+
+  // پر کردن منوی کشویی
+  drawerListEl.innerHTML = courses.map((c, i) => {
+    const done = c.customers.filter(x => x.status === "Complet").length;
+    const isActive = i === activeTab;
+    return `
+      <div class="driver-item ${isActive ? 'active' : ''}" onclick="setTab(${i})">
+        <div class="driver-name">${escape(c.name)}</div>
+        <div class="driver-badge">${done}/${c.customers.length}</div>
+      </div>
+    `;
+  }).join("");
+
+  // تنظیم عنوان هدر
+  const currentCourse = courses[activeTab];
+  if (currentCourse) {
+    headerTitleEl.textContent = currentCourse.name;
+  } else {
+    headerTitleEl.textContent = "Selectează o cursă";
+  }
+
+  // رندر کارت مغازه‌ها
+  if (!currentCourse || !currentCourse.customers.length) {
+    appEl.innerHTML = `<div class="empty">Niciun client în această cursă</div>`;
+    return;
+  }
+
+  appEl.innerHTML = currentCourse.customers.map((cu, i) => {
+    const done = cu.status === "Complet";
+    const statusHtml = done 
+      ? `<span class="status-badge done">✅ Livrat</span>` 
+      : `<span class="status-badge wait">⏳ În așteptare</span>`;
+      
+    const productsHtml = cu.products.length
+      ? cu.products.map(p => `
+          <div class="product">
+            <div class="pname">${escape(p.name)}</div>
+            <div class="pval">${escape(p.value)}</div>
+          </div>`).join("")
+      : `<div style="padding:12px; color:var(--text-muted); text-align:center; font-size:13px;">Niciun produs adăugat</div>`;
+
+    return `
+      <div class="store" id="store-${i}">
+        <div class="store-header" onclick="toggleStore(${i})">
+          <div class="store-info">
+            <div class="store-name">${escape(cu.name)}</div>
+            ${statusHtml}
+          </div>
+          <div class="icon-arrow">
+            <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+          </div>
+        </div>
+        <div class="store-body">
+          <div class="store-body-inner">
+            ${productsHtml}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function toggleStore(i) { 
+  const el = document.getElementById("store-" + i);
+  el.classList.toggle("open"); 
+}
+
+function escape(s) {
+  return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+}
+
+loadData();
+</script>
+</body>
+</html>
 
 <!DOCTYPE html>
 <html lang="ro">
