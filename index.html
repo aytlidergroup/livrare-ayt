@@ -1,67 +1,173 @@
+
+const API_URL = "";
+
 <!DOCTYPE html>
 <html lang="ro">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f172a">
 <title>Livrare</title>
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #1a1a2e; color: #fff; min-height: 100vh;
-    padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+  /* --- متغیرهای رنگی و فونت مدرن --- */
+  :root {
+    --bg-base: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-hover: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.15);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.15);
+    --border-radius: 16px;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    margin: 0; font-family: var(--font-family);
+    background-color: var(--bg-base); color: var(--text-main);
+    min-height: 100vh; padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    /* بک‌گراند گرادیانت ملایم */
+    background-image: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+    background-attachment: fixed;
+  }
+
+  /* --- نوار تب‌ها (Tabs) --- */
   .tabs {
-    display: flex; overflow-x: auto; background: #2c3e50;
-    position: sticky; top: 0; z-index: 10; scrollbar-width: none;
+    display: flex; overflow-x: auto; padding: 12px 16px;
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    scrollbar-width: none; gap: 10px;
   }
   .tabs::-webkit-scrollbar { display: none; }
+  
   .tab {
-    flex: 0 0 auto; padding: 16px 20px; font-size: 15px; font-weight: 700;
-    color: #bdc3c7; background: transparent; border: none; cursor: pointer;
-    border-bottom: 4px solid transparent; white-space: nowrap;
+    flex: 0 0 auto; padding: 10px 18px; font-size: 14px; font-weight: 600;
+    color: var(--text-muted); background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 30px;
+    cursor: pointer; transition: all 0.3s ease; white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
   }
-  .tab.active { color: #f39c12; border-bottom-color: #f39c12; background: #1a1a2e; }
-  .container { padding: 16px; max-width: 700px; margin: 0 auto; }
-  .store { background: #2c3e50; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .tab.active {
+    background: var(--accent); color: #0f172a; border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  .badge {
+    background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 700;
+  }
+  .tab.active .badge { background: rgba(255,255,255,0.4); color: #0f172a; }
+
+  /* --- بدنه اصلی --- */
+  .container { padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+  
+  .store {
+    background: var(--bg-card); border-radius: var(--border-radius);
+    margin-bottom: 16px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .store:active { transform: scale(0.98); }
+  
   .store-header {
-    padding: 16px; display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; gap: 10px;
+    padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; gap: 12px; transition: background 0.3s ease;
   }
-  .store-header.done { background: #27ae60; }
-  .store-name { font-size: 17px; font-weight: 700; flex: 1; word-break: break-word; }
-  .store-status { font-size: 13px; opacity: 0.9; white-space: nowrap; }
-  .arrow { font-size: 18px; transition: transform 0.2s; }
-  .store.open .arrow { transform: rotate(180deg); }
-  .store-body { display: none; padding: 0 12px 12px; background: #1a1a2e; }
-  .store.open .store-body { display: block; }
-  .product { display: grid; grid-template-columns: 1fr 1.4fr; gap: 6px; margin-top: 8px; }
-  .product div { padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; word-break: break-word; }
-  .product .pname { background: #34495e; color: #ecf0f1; }
-  .product .pval { background: #ecf0f1; color: #2c3e50; }
-  .empty { text-align: center; padding: 40px; opacity: 0.6; }
-  .loading { text-align: center; padding: 60px; }
+  .store-header:hover { background: var(--bg-card-hover); }
+  
+  .store-info { flex: 1; min-width: 0; }
+  .store-name {
+    font-size: 16px; font-weight: 700; margin-bottom: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  }
+  .status-badge.done { background: var(--success-bg); color: var(--success); }
+  .status-badge.wait { background: var(--warning-bg); color: var(--warning); }
+  
+  .icon-arrow {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .icon-arrow svg { width: 16px; height: 16px; fill: var(--text-muted); transition: fill 0.3s; }
+  .store.open .icon-arrow { transform: rotate(180deg); background: rgba(255,255,255,0.1); }
+  .store.open .icon-arrow svg { fill: var(--text-main); }
+
+  /* --- بدنه محصولات (انیمیشن باز شدن) --- */
+  .store-body {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(0,0,0,0.2);
+  }
+  .store.open .store-body { grid-template-rows: 1fr; }
+  
+  .store-body-inner {
+    overflow: hidden; padding: 0 16px; opacity: 0;
+    transition: opacity 0.3s ease, padding 0.3s ease;
+  }
+  .store.open .store-body-inner { padding: 16px; opacity: 1; }
+
+  .product {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: rgba(255,255,255,0.03);
+    border-radius: 10px; margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.02);
+  }
+  .product:last-child { margin-bottom: 0; }
+  
+  .pname { font-size: 14px; color: var(--text-muted); font-weight: 500; flex: 1; padding-right: 12px; word-break: break-word; }
+  .pval {
+    font-size: 15px; font-weight: 700; color: var(--accent);
+    background: rgba(56, 189, 248, 0.1); padding: 4px 12px; border-radius: 8px; white-space: nowrap;
+  }
+
+  /* --- حالت‌های خالی و لودینگ --- */
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 15px; }
+  .empty svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; fill: currentColor; }
+  
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 20px; }
   .spinner {
-    display: inline-block; width: 36px; height: 36px;
-    border: 4px solid rgba(255,255,255,0.2); border-top-color: #f39c12;
-    border-radius: 50%; animation: spin 0.8s linear infinite;
+    width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .error { background: #e74c3c; padding: 16px; border-radius: 12px; margin: 16px; text-align: center; }
+  
+  .error {
+    background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5; padding: 20px; border-radius: var(--border-radius);
+    text-align: center; font-weight: 500; margin: 20px 0;
+  }
 </style>
 </head>
 <body>
 
 <div class="tabs" id="tabs"></div>
 <div class="container" id="app">
-  <div class="loading"><div class="spinner"></div></div>
+  <div class="loading">
+    <div class="spinner"></div>
+    <div style="color: var(--text-muted); font-size: 14px; font-weight: 500;">Se încarcă datele...</div>
+  </div>
 </div>
 
 <script>
-// ⚠️ این خط رو حتماً عوض کنید و لینک خودتون رو بذارید:
-const API_URL = "https://script.google.com/macros/s/AKfycbylSqKWCyFNOohh5swFYaZ5Q72eSb9ZVfxpnKXoNO9MzLd_9Tsd3HxCpxP16MFsBtWN5g/exec";
+// ⚠️ لینک خودتون رو اینجا بذارید
+const API_URL = "https://script.google.com/macros/s/AKfycbylSqKWCyFNOohh5swFYaZ5Q72eSb9ZVfxpnKXoNO9MzLd_9Tsd3HxCpxP16MFsBtWN5g/exec"
 
 let courses = [];
 let activeTab = 0;
@@ -73,55 +179,94 @@ async function loadData() {
     courses = data.courses || [];
     render();
   } catch (e) {
-    document.getElementById("app").innerHTML = `<div class="error">Eroare: ${e.message}</div>`;
+    document.getElementById("app").innerHTML = `
+      <div class="error">
+        <svg style="width:24px;height:24px;margin-bottom:8px;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><br>
+        Eroare de conexiune.<br>Vă rugăm verificați internetul.
+      </div>`;
   }
 }
 
 function render() {
   const tabsEl = document.getElementById("tabs");
   const appEl = document.getElementById("app");
+
   if (!courses.length) {
-    tabsEl.innerHTML = ""; appEl.innerHTML = `<div class="empty">Nu există date</div>`; return;
+    tabsEl.innerHTML = "";
+    appEl.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>
+        <br>Nu există curse disponibile
+      </div>`;
+    return;
   }
+
+  // رندر تب‌ها
   tabsEl.innerHTML = courses.map((c, i) => {
     const done = c.customers.filter(x => x.status === "Complet").length;
     return `<button class="tab ${i === activeTab ? "active" : ""}" onclick="setTab(${i})">
-      ${escape(c.name)} <span style="opacity:0.7;font-size:12px">(${done}/${c.customers.length})</span>
+      ${escape(c.name)} 
+      <span class="badge">${done}/${c.customers.length}</span>
     </button>`;
   }).join("");
 
   const course = courses[activeTab];
   if (!course || !course.customers.length) {
-    appEl.innerHTML = `<div class="empty">Niciun client în această cursă</div>`; return;
+    appEl.innerHTML = `<div class="empty">Niciun client în această cursă</div>`;
+    return;
   }
 
+  // رندر کارت مغازه‌ها
   appEl.innerHTML = course.customers.map((cu, i) => {
     const done = cu.status === "Complet";
-    const statusText = done ? "✅ Livrat" : "⏳ În așteptare";
+    const statusHtml = done 
+      ? `<span class="status-badge done">✅ Livrat</span>` 
+      : `<span class="status-badge wait">⏳ În așteptare</span>`;
+      
     const productsHtml = cu.products.length
       ? cu.products.map(p => `
           <div class="product">
             <div class="pname">${escape(p.name)}</div>
             <div class="pval">${escape(p.value)}</div>
           </div>`).join("")
-      : `<div style="padding:12px;opacity:0.6">Niciun produs</div>`;
+      : `<div style="padding:12px; color:var(--text-muted); text-align:center; font-size:13px;">Niciun produs adăugat</div>`;
+
     return `
       <div class="store" id="store-${i}">
-        <div class="store-header ${done ? "done" : ""}" onclick="toggleStore(${i})">
-          <div class="store-name">${escape(cu.name)}</div>
-          <div class="store-status">${statusText}</div>
-          <div class="arrow">▼</div>
+        <div class="store-header" onclick="toggleStore(${i})">
+          <div class="store-info">
+            <div class="store-name">${escape(cu.name)}</div>
+            ${statusHtml}
+          </div>
+          <div class="icon-arrow">
+            <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+          </div>
         </div>
-        <div class="store-body">${productsHtml}</div>
+        <div class="store-body">
+          <div class="store-body-inner">
+            ${productsHtml}
+          </div>
+        </div>
       </div>`;
   }).join("");
 }
 
-function setTab(i) { activeTab = i; render(); }
-function toggleStore(i) { document.getElementById("store-" + i).classList.toggle("open"); }
+function setTab(i) { 
+  activeTab = i; 
+  render(); 
+  // اسکرول به بالای صفحه موقع عوض کردن تب
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleStore(i) { 
+  const el = document.getElementById("store-" + i);
+  el.classList.toggle("open"); 
+}
+
 function escape(s) {
   return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 }
+
 loadData();
 </script>
 </body>
