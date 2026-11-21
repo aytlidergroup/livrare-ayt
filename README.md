@@ -1,1 +1,170 @@
 # livrare-ayt
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Livrare">
+<title>Livrare</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1a2e; color: #fff; min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tabs {
+    display: flex; overflow-x: auto; background: #2c3e50;
+    position: sticky; top: 0; z-index: 10;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto; padding: 16px 20px; font-size: 15px; font-weight: 700;
+    color: #bdc3c7; background: transparent; border: none; cursor: pointer;
+    border-bottom: 4px solid transparent; white-space: nowrap;
+  }
+  .tab.active { color: #f39c12; border-bottom-color: #f39c12; background: #1a1a2e; }
+
+  .container { padding: 16px; max-width: 700px; margin: 0 auto; }
+  .title { font-size: 20px; font-weight: 700; color: #f39c12; margin: 8px 0 16px; }
+
+  .store {
+    background: #2c3e50; border-radius: 12px; margin-bottom: 12px; overflow: hidden;
+  }
+  .store-header {
+    padding: 16px; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; gap: 10px;
+  }
+  .store-header.done { background: #27ae60; }
+  .store-name { font-size: 17px; font-weight: 700; flex: 1; word-break: break-word; }
+  .store-status { font-size: 13px; opacity: 0.9; white-space: nowrap; }
+  .arrow { font-size: 18px; transition: transform 0.2s; }
+  .store.open .arrow { transform: rotate(180deg); }
+
+  .store-body {
+    display: none; padding: 0 12px 12px;
+    background: #1a1a2e;
+  }
+  .store.open .store-body { display: block; }
+
+  .product {
+    display: grid; grid-template-columns: 1fr 1.4fr; gap: 6px; margin-top: 8px;
+  }
+  .product div {
+    padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    word-break: break-word;
+  }
+  .product .pname { background: #34495e; color: #ecf0f1; }
+  .product .pval { background: #ecf0f1; color: #2c3e50; }
+
+  .empty { text-align: center; padding: 40px; opacity: 0.6; }
+  .loading { text-align: center; padding: 60px; }
+  .spinner {
+    display: inline-block; width: 36px; height: 36px;
+    border: 4px solid rgba(255,255,255,0.2); border-top-color: #f39c12;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error { background: #e74c3c; padding: 16px; border-radius: 12px; margin: 16px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="tabs" id="tabs"></div>
+<div class="container" id="app">
+  <div class="loading"><div class="spinner"></div></div>
+</div>
+
+<script>
+// ⚠️ URL خودتون رو اینجا بذارید
+const API_URL = "https://script.google.com/macros/s/XXXXXXXX/exec";
+
+let courses = [];
+let activeTab = 0;
+
+async function loadData() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    courses = data.courses || [];
+    render();
+  } catch (e) {
+    document.getElementById("app").innerHTML =
+      `<div class="error">Eroare: ${e.message}</div>`;
+  }
+}
+
+function render() {
+  const tabsEl = document.getElementById("tabs");
+  const appEl = document.getElementById("app");
+
+  if (!courses.length) {
+    tabsEl.innerHTML = "";
+    appEl.innerHTML = `<div class="empty">Nu există date</div>`;
+    return;
+  }
+
+  tabsEl.innerHTML = courses.map((c, i) => {
+    const done = c.customers.filter(x => x.status === "Complet").length;
+    return `<button class="tab ${i === activeTab ? "active" : ""}" onclick="setTab(${i})">
+      ${escape(c.name)} <span style="opacity:0.7;font-size:12px">(${done}/${c.customers.length})</span>
+    </button>`;
+  }).join("");
+
+  const course = courses[activeTab];
+  if (!course) { appEl.innerHTML = ""; return; }
+
+  if (!course.customers.length) {
+    appEl.innerHTML = `<div class="empty">Niciun client în această cursă</div>`;
+    return;
+  }
+
+  appEl.innerHTML = course.customers.map((cu, i) => {
+    const done = cu.status === "Complet";
+    const statusText = done ? "✅ Livrat" : "⏳ În așteptare";
+    const productsHtml = cu.products.length
+      ? cu.products.map(p => `
+          <div class="product">
+            <div class="pname">${escape(p.name)}</div>
+            <div class="pval">${escape(p.value)}</div>
+          </div>`).join("")
+      : `<div style="padding:12px;opacity:0.6">Niciun produs</div>`;
+
+    return `
+      <div class="store" id="store-${i}">
+        <div class="store-header ${done ? "done" : ""}" onclick="toggleStore(${i})">
+          <div class="store-name">${escape(cu.name)}</div>
+          <div class="store-status">${statusText}</div>
+          <div class="arrow">▼</div>
+        </div>
+        <div class="store-body">${productsHtml}</div>
+      </div>`;
+  }).join("");
+}
+
+function setTab(i) {
+  activeTab = i;
+  render();
+}
+
+function toggleStore(i) {
+  const el = document.getElementById("store-" + i);
+  el.classList.toggle("open");
+}
+
+function escape(s) {
+  return String(s).replace(/[&<>"']/g, m => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[m]));
+}
+
+loadData();
+</script>
+
+</body>
+</html>
