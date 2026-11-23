@@ -13,11 +13,9 @@
   :root {
     --bg-base: #0a0f1c;
     --bg-card: rgba(30, 41, 59, 0.6);
-    --bg-card-hover: rgba(51, 65, 85, 0.8);
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --accent: #d4af37;
-    --accent-glow: rgba(212, 175, 55, 0.2);
     --success: #10b981;
     --success-bg: rgba(16, 185, 129, 0.15);
     --warning: #f59e0b;
@@ -258,7 +256,7 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzGvQ8Df4717X6G1lXo9rAJp6EP-oJwg8PlhadcA6tZBDG-R933cPtruoSZEf1cGWDA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbykWh7teJ4nJGYSyboIqt9vt3fhRIgn1SKpeR8VsDU-3iiTbgQmla8rmZN8p1c2KJ3djw/exec";
 const HEADER_LOCATION_URL = "https://aytlidergroup.github.io/Ayt-Locatie/";
 
 document.getElementById("headerLocationBtn").href = HEADER_LOCATION_URL;
@@ -336,10 +334,12 @@ function render() {
           </div>`).join("")
       : `<div style="padding:12px; color:var(--text-muted); text-align:center; font-size:13px;">Niciun produs adăugat</div>`;
 
+    // بررسی وجود لوکیشن
     let locationBtnHtml = "";
-    if (cu.location) {
+    if (cu.location && (cu.location.lat || cu.location.link || cu.location.address)) {
+      // اگر مختصات یا لینک یا آدرس وجود داشت، دکمه فعال میشود
       locationBtnHtml = `
-        <div class="btn-location" onclick="event.stopPropagation(); openMapModal('${escape(cu.location)}')" title="Deschide harta">
+        <div class="btn-location" onclick="event.stopPropagation(); openMapModal('${escape(JSON.stringify(cu.location))}')" title="Deschide harta">
           <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
         </div>`;
     } else {
@@ -378,37 +378,35 @@ function toggleStore(i) {
 }
 
 // --- مودال انتخاب اپ ناوبری ---
-let currentLocationStr = "";
-
-function openMapModal(locationStr) {
-  currentLocationStr = locationStr;
-  const isUrl = locationStr.startsWith("http");
+function openMapModal(locJsonString) {
+  const loc = JSON.parse(locJsonString);
   
-  // 1. لینک Google Maps
-  const gMapsUrl = isUrl ? locationStr : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationStr)}`;
+  // استخراج بهترین مختصات یا آدرس برای استفاده در نقشه‌ها
+  let coordinate = "";
+  if (loc.lat && loc.lng) {
+    coordinate = `${loc.lat},${loc.lng}`;
+  } else if (loc.link && loc.link.startsWith("http")) {
+    coordinate = loc.link;
+  } else if (loc.address) {
+    coordinate = loc.address;
+  }
+
+  const isUrl = coordinate.startsWith("http");
+
+  // 1. Google Maps
+  let gMapsUrl = isUrl ? coordinate : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinate)}`;
   document.getElementById("btnGoogleMaps").href = gMapsUrl;
   
-  // 2. لینک Apple Maps
-  let aMapsUrl = "";
-  if (isUrl) {
-    aMapsUrl = locationStr;
-  } else if (locationStr.includes(",") && !isNaN(locationStr.split(",")[0])) {
-    aMapsUrl = `https://maps.apple.com/?ll=${locationStr}`;
-  } else {
-    aMapsUrl = `https://maps.apple.com/?q=${encodeURIComponent(locationStr)}`;
-  }
+  // 2. Apple Maps
+  let aMapsUrl = isUrl ? coordinate : `https://maps.apple.com/?q=${encodeURIComponent(coordinate)}`;
   document.getElementById("btnAppleMaps").href = aMapsUrl;
 
-  // 3. لینک Waze (با استفاده از Deep Link رسمی)
-  // اگر مختصات باشد از ll استفاده میکنیم، اگر آدرس متنی باشد از q
+  // 3. Waze
   let wazeUrl = "";
-  if (isUrl) {
-    // اگر لینک گوگل مپ بود، سعی میکنیم مختصات را استخراج کنیم (خیلی ساده)
-    wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(locationStr)}`;
-  } else if (locationStr.includes(",") && !isNaN(locationStr.split(",")[0])) {
-    wazeUrl = `https://waze.com/ul?ll=${locationStr}&navigate=yes`;
+  if (loc.lat && loc.lng) {
+    wazeUrl = `https://waze.com/ul?ll=${loc.lat},${loc.lng}&navigate=yes`;
   } else {
-    wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(locationStr)}`;
+    wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(coordinate)}`;
   }
   document.getElementById("btnWaze").href = wazeUrl;
 
