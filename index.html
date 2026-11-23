@@ -44,11 +44,13 @@
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
   
-  .menu-btn {
+  .menu-btn, .header-right-btn {
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
     color: var(--text-main); width: 44px; height: 44px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
+    text-decoration: none; transition: background 0.2s;
   }
+  .menu-btn:active, .header-right-btn:active { background: rgba(255,255,255,0.15); }
   .menu-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
   .header-center { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center; overflow: hidden; }
@@ -106,13 +108,10 @@
   }
   .btn-location:active { background: rgba(212, 175, 55, 0.3); }
   
-  /* دکمه لوکیشن غیرفعال (وقتی مغازه پیدا نشد) */
+  /* دکمه لوکیشن غیرفعال */
   .btn-location.disabled {
-    background: rgba(255, 255, 255, 0.05); 
-    color: var(--text-muted);
-    border-color: rgba(255, 255, 255, 0.1);
-    cursor: not-allowed;
-    opacity: 0.5;
+    background: rgba(255, 255, 255, 0.05); color: var(--text-muted);
+    border-color: rgba(255, 255, 255, 0.1); cursor: not-allowed; opacity: 0.5;
   }
 
   .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
@@ -151,11 +150,16 @@
   <button class="menu-btn" onclick="toggleDrawer()">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
   </button>
+  
   <div class="header-center">
     <img src="images.jpg" alt="AYT Logo" class="header-logo">
     <div class="header-title" id="headerTitle">Se încarcă...</div>
   </div>
-  <div style="width: 44px;"></div>
+  
+  <!-- دکمه سمت راست هدر (لینک دلخواه) -->
+  <a href="#" id="headerLocationBtn" target="_blank" class="header-right-btn" title="Deschide link">
+    📍
+  </a>
 </header>
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
@@ -177,7 +181,13 @@
 
 <script>
 // ⚠️ لینک API خودتون رو اینجا بذارید
-const API_URL = "https://script.google.com/macros/s/AKfycbwm79JXwfwLWNHDogZimCXly3Zwk1mZnmTd0AoJA5cvHNR1vHEfKNzAkuhkY-baLO3Wlg/exec";
+const API_URL = "لینک_ای_پی_آی_شما";
+
+// ⚠️ لینک سایتی که میخواید دکمه بالای صفحه (📍) به اون بره رو اینجا بذارید
+const HEADER_LOCATION_URL = "https://script.google.com/macros/s/AKfycbxmUtcRDksAY66ve3cX1APKbqCvjA2FHTsf_bZhyxqC5EkkAILPOnrkH27SzQRvNg395w/exec";
+
+// تنظیم لینک دکمه هدر
+document.getElementById("headerLocationBtn").href = HEADER_LOCATION_URL;
 
 let courses = [];
 let activeTab = 0;
@@ -252,7 +262,7 @@ function render() {
           </div>`).join("")
       : `<div style="padding:12px; color:var(--text-muted); text-align:center; font-size:13px;">Niciun produs adăugat</div>`;
 
-    // --- منطق دکمه لوکیشن ---
+    // منطق دکمه لوکیشن مغازه
     let locationBtnHtml = "";
     if (cu.location) {
       // اگر لینک بود
@@ -265,7 +275,7 @@ function render() {
           📍
         </a>`;
     } else {
-      // اگر لوکیشن پیدا نشد، دکمه رو غیرفعال (خاکستری) نشون بده
+      // اگر پیدا نشد
       locationBtnHtml = `
         <div class="btn-location disabled" onclick="event.stopPropagation();" title="Locație indisponibilă">
           📍
