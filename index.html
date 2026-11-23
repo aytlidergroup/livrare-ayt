@@ -30,7 +30,7 @@
     margin: 0; font-family: var(--font-family);
     background-color: var(--bg-base); color: var(--text-main);
     min-height: 100vh; padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(50px + env(safe-area-inset-bottom));
     background-image: 
       radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.08), transparent 25%),
       radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08), transparent 25%);
@@ -91,7 +91,7 @@
   .driver-badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
   .driver-item.active .driver-badge { background: var(--accent); color: #000; }
 
-  .container { padding: 16px; max-width: 700px; margin: 0 auto; }
+  .container { padding: 16px; max-width: 700px; margin: 0 auto; position: relative; }
   
   .store { 
     background: var(--bg-card); 
@@ -99,14 +99,44 @@
     border-radius: var(--border-radius); margin-bottom: 12px; overflow: hidden; 
     border: 1px solid rgba(255,255,255,0.08); 
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    transition: transform 0.2s, border-color 0.2s;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    position: relative;
   }
-  .store:active { transform: scale(0.98); }
+
+  .store.dragging {
+    opacity: 0.92;
+    transform: scale(1.03);
+    border-color: var(--accent);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(212, 175, 55, 0.35);
+    z-index: 40;
+    background: rgba(30, 41, 59, 0.95);
+  }
+
+  .store.drag-over-top {
+    border-top: 3px solid var(--accent);
+  }
   
-  .store-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .store-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+  .drag-handle {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 42px; border-radius: 10px;
+    color: var(--text-muted); cursor: grab; flex-shrink: 0;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    transition: color 0.15s, background 0.15s;
+  }
+  .drag-handle:active, .store.dragging .drag-handle {
+    cursor: grabbing;
+    color: var(--accent);
+    background: rgba(212, 175, 55, 0.14);
+    border-color: rgba(212, 175, 55, 0.35);
+  }
+  .drag-handle svg { width: 18px; height: 18px; fill: currentColor; }
   
   .store-info { flex: 1; min-width: 0; cursor: pointer; }
   .store-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .store-index { font-size: 12px; font-weight: 700; color: var(--accent); background: rgba(212, 175, 55, 0.12); padding: 2px 7px; border-radius: 6px; flex-shrink: 0; }
   .store-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px; }
   
   .btn-location {
@@ -130,7 +160,7 @@
   
   .icon-arrow {
     width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer;
   }
   .icon-arrow svg { width: 18px; height: 18px; stroke: var(--text-muted); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -153,7 +183,18 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 20px; border-radius: var(--border-radius); text-align: center; font-weight: 500; margin: 20px 0; }
 
-  /* --- مودال انتخاب اپ ناوبری --- */
+  .toast {
+    position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--text-main); padding: 10px 20px; border-radius: 30px;
+    font-size: 13px; font-weight: 600; z-index: 300;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -170,7 +211,6 @@
     border-top: 1px solid rgba(255,255,255,0.1);
   }
   .modal-overlay.open .modal-content { transform: translateY(0); }
-  
   .modal-title { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
   
   .map-option {
@@ -225,7 +265,8 @@
   </div>
 </div>
 
-<!-- مودال انتخاب اپ ناوبری -->
+<div class="toast" id="toast">Se salvează ordinea...</div>
+
 <div class="modal-overlay" id="mapModal" onclick="closeMapModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-title">Deschide locația cu...</div>
@@ -256,13 +297,21 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbykWh7teJ4nJGYSyboIqt9vt3fhRIgn1SKpeR8VsDU-3iiTbgQmla8rmZN8p1c2KJ3djw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwhRxYMyDNvMdxYONhPd0C8RkSYKbqVncNgxLRzwsznp25zq2kWavO7P3m6cgERGfUHSA/exec";
 const HEADER_LOCATION_URL = "https://aytlidergroup.github.io/Ayt-Locatie/";
 
 document.getElementById("headerLocationBtn").href = HEADER_LOCATION_URL;
 
 let courses = [];
 let activeTab = 0;
+let saveTimeout = null;
+
+let dragState = {
+  active: false,
+  sourceIndex: null,
+  currentIndex: null,
+  sourceEl: null
+};
 
 async function loadData() {
   try {
@@ -272,6 +321,146 @@ async function loadData() {
     render();
   } catch (e) {
     document.getElementById("app").innerHTML = `<div class="error">Eroare de conexiune.<br>Vă rugăm verificați internetul.</div>`;
+  }
+}
+
+function showToast(msg, duration = 2000) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.classList.add("show");
+  if (duration > 0) {
+    setTimeout(() => toast.classList.remove("show"), duration);
+  }
+}
+
+function commitReorder(fromIdx, toIdx) {
+  if (fromIdx === null || toIdx === null || fromIdx === toIdx) return;
+  const customers = courses[activeTab].customers;
+  const [movedItem] = customers.splice(fromIdx, 1);
+  customers.splice(toIdx, 0, movedItem);
+
+  render();
+
+  clearTimeout(saveTimeout);
+  showToast("⏳ Se salvează ordinea...", 0);
+  saveTimeout = setTimeout(() => {
+    saveOrderToSheet(courses[activeTab].name, customers);
+  }, 600);
+}
+
+async function saveOrderToSheet(courseName, customers) {
+  try {
+    const orderedNames = customers.map(c => c.name);
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "reorder",
+        courseName: courseName,
+        orderedNames: orderedNames
+      })
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      showToast("✅ Ordinea a fost salvată în tabel!", 2500);
+    } else {
+      showToast("⚠️ Eroare la salvare: " + (result.message || ""), 3500);
+    }
+  } catch (err) {
+    showToast("❌ Eroare de rețea la salvare!", 3500);
+  }
+}
+
+function startDrag(e, index) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const cardEl = document.getElementById("store-" + index);
+  if (!cardEl) return;
+
+  cardEl.classList.remove("open");
+  cardEl.classList.add("dragging");
+
+  dragState = {
+    active: true,
+    sourceIndex: index,
+    currentIndex: index,
+    sourceEl: cardEl
+  };
+
+  document.addEventListener("touchmove", onDragMove, { passive: false });
+  document.addEventListener("touchend", onDragEnd);
+  document.addEventListener("mousemove", onDragMove);
+  document.addEventListener("mouseup", onDragEnd);
+}
+
+function onDragMove(e) {
+  if (!dragState.active) return;
+  e.preventDefault();
+
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+  const scrollZone = 75;
+  const scrollSpeed = 10;
+  if (clientY < scrollZone) {
+    window.scrollBy(0, -scrollSpeed);
+  } else if (clientY > window.innerHeight - scrollZone) {
+    window.scrollBy(0, scrollSpeed);
+  }
+
+  const cards = Array.from(document.querySelectorAll("#app .store"));
+  cards.forEach(c => c.classList.remove("drag-over-top"));
+
+  let targetIdx = dragState.currentIndex;
+
+  for (let i = 0; i < cards.length; i++) {
+    const rect = cards[i].getBoundingClientRect();
+    if (clientY >= rect.top && clientY <= rect.bottom) {
+      const midY = rect.top + rect.height / 2;
+      targetIdx = clientY < midY ? i : Math.min(i + 1, cards.length - 1);
+      if (i !== dragState.sourceIndex) {
+        cards[i].classList.add("drag-over-top");
+      }
+      break;
+    }
+  }
+
+  if (targetIdx !== dragState.currentIndex) {
+    const container = document.getElementById("app");
+    const refCard = cards[targetIdx];
+    if (refCard && refCard !== dragState.sourceEl) {
+      if (targetIdx > dragState.currentIndex) {
+        container.insertBefore(dragState.sourceEl, refCard.nextSibling);
+      } else {
+        container.insertBefore(dragState.sourceEl, refCard);
+      }
+      dragState.currentIndex = targetIdx;
+    }
+  }
+}
+
+function onDragEnd() {
+  if (!dragState.active) return;
+
+  document.removeEventListener("touchmove", onDragMove);
+  document.removeEventListener("touchend", onDragEnd);
+  document.removeEventListener("mousemove", onDragMove);
+  document.removeEventListener("mouseup", onDragEnd);
+
+  if (dragState.sourceEl) {
+    dragState.sourceEl.classList.remove("dragging");
+  }
+  document.querySelectorAll("#app .store").forEach(c => c.classList.remove("drag-over-top"));
+
+  const finalCards = Array.from(document.querySelectorAll("#app .store"));
+  const finalIndex = finalCards.indexOf(dragState.sourceEl);
+  const originIndex = dragState.sourceIndex;
+
+  dragState = { active: false, sourceIndex: null, currentIndex: null, sourceEl: null };
+
+  if (finalIndex !== -1 && finalIndex !== originIndex) {
+    commitReorder(originIndex, finalIndex);
   }
 }
 
@@ -320,6 +509,16 @@ function render() {
     return;
   }
 
+  const dragHandleSvg = `
+    <svg viewBox="0 0 24 24">
+      <circle cx="9" cy="6" r="1.7"></circle>
+      <circle cx="15" cy="6" r="1.7"></circle>
+      <circle cx="9" cy="12" r="1.7"></circle>
+      <circle cx="15" cy="12" r="1.7"></circle>
+      <circle cx="9" cy="18" r="1.7"></circle>
+      <circle cx="15" cy="18" r="1.7"></circle>
+    </svg>`;
+
   appEl.innerHTML = currentCourse.customers.map((cu, i) => {
     const done = cu.status === "Complet";
     const statusHtml = done 
@@ -334,10 +533,8 @@ function render() {
           </div>`).join("")
       : `<div style="padding:12px; color:var(--text-muted); text-align:center; font-size:13px;">Niciun produs adăugat</div>`;
 
-    // بررسی وجود لوکیشن
     let locationBtnHtml = "";
     if (cu.location && (cu.location.lat || cu.location.link || cu.location.address)) {
-      // اگر مختصات یا لینک یا آدرس وجود داشت، دکمه فعال میشود
       locationBtnHtml = `
         <div class="btn-location" onclick="event.stopPropagation(); openMapModal('${escape(JSON.stringify(cu.location))}')" title="Deschide harta">
           <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -352,13 +549,22 @@ function render() {
     return `
       <div class="store" id="store-${i}">
         <div class="store-header">
+          <div class="drag-handle" 
+               ontouchstart="startDrag(event, ${i})" 
+               onmousedown="startDrag(event, ${i})" 
+               title="Trage pentru a reordona">
+            ${dragHandleSvg}
+          </div>
+
           <div class="store-info" onclick="toggleStore(${i})">
             <div class="store-name-row">
+              <span class="store-index">${i + 1}</span>
               <div class="store-name">${escape(cu.name)}</div>
               ${locationBtnHtml}
             </div>
             ${statusHtml}
           </div>
+
           <div class="icon-arrow" onclick="toggleStore(${i})">
             <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
@@ -373,15 +579,13 @@ function render() {
 }
 
 function toggleStore(i) { 
+  if (dragState.active) return;
   const el = document.getElementById("store-" + i);
-  el.classList.toggle("open"); 
+  if (el) el.classList.toggle("open"); 
 }
 
-// --- مودال انتخاب اپ ناوبری ---
 function openMapModal(locJsonString) {
   const loc = JSON.parse(locJsonString);
-  
-  // استخراج بهترین مختصات یا آدرس برای استفاده در نقشه‌ها
   let coordinate = "";
   if (loc.lat && loc.lng) {
     coordinate = `${loc.lat},${loc.lng}`;
@@ -392,22 +596,12 @@ function openMapModal(locJsonString) {
   }
 
   const isUrl = coordinate.startsWith("http");
-
-  // 1. Google Maps
-  let gMapsUrl = isUrl ? coordinate : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinate)}`;
-  document.getElementById("btnGoogleMaps").href = gMapsUrl;
+  document.getElementById("btnGoogleMaps").href = isUrl ? coordinate : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinate)}`;
+  document.getElementById("btnAppleMaps").href = isUrl ? coordinate : `https://maps.apple.com/?q=${encodeURIComponent(coordinate)}`;
   
-  // 2. Apple Maps
-  let aMapsUrl = isUrl ? coordinate : `https://maps.apple.com/?q=${encodeURIComponent(coordinate)}`;
-  document.getElementById("btnAppleMaps").href = aMapsUrl;
-
-  // 3. Waze
-  let wazeUrl = "";
-  if (loc.lat && loc.lng) {
-    wazeUrl = `https://waze.com/ul?ll=${loc.lat},${loc.lng}&navigate=yes`;
-  } else {
-    wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(coordinate)}`;
-  }
+  let wazeUrl = (loc.lat && loc.lng) 
+    ? `https://waze.com/ul?ll=${loc.lat},${loc.lng}&navigate=yes`
+    : `https://waze.com/ul?q=${encodeURIComponent(coordinate)}`;
   document.getElementById("btnWaze").href = wazeUrl;
 
   document.getElementById("mapModal").classList.add("open");
