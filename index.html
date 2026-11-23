@@ -40,7 +40,6 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* --- هدر شیشه‌ای --- */
   .header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 16px; position: sticky; top: 0; z-index: 50;
@@ -62,7 +61,6 @@
   .header-logo { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #000; border: 1px solid rgba(212, 175, 55, 0.3); }
   .header-title { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
 
-  /* --- منوی کشویی (Drawer) --- */
   .drawer-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.5);
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -95,7 +93,6 @@
   .driver-badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
   .driver-item.active .driver-badge { background: var(--accent); color: #000; }
 
-  /* --- لیست مغازه‌ها --- */
   .container { padding: 16px; max-width: 700px; margin: 0 auto; }
   
   .store { 
@@ -114,7 +111,6 @@
   .store-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .store-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px; }
   
-  /* دکمه لوکیشن مدرن */
   .btn-location {
     display: inline-flex; align-items: center; justify-content: center;
     background: rgba(212, 175, 55, 0.1); color: var(--accent);
@@ -153,17 +149,53 @@
   .pname { font-size: 14px; color: var(--text-muted); font-weight: 500; flex: 1; padding-right: 12px; word-break: break-word; }
   .pval { font-size: 15px; font-weight: 700; color: var(--accent); background: rgba(212, 175, 55, 0.1); padding: 4px 12px; border-radius: 8px; white-space: nowrap; }
 
-  /* --- حالت‌های خالی و لودینگ --- */
   .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 15px; }
   .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 20px; }
   .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 20px; border-radius: var(--border-radius); text-align: center; font-weight: 500; margin: 20px 0; }
+
+  /* --- مودال انتخاب اپ ناوبری --- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    z-index: 200; display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  
+  .modal-content {
+    background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    width: 100%; max-width: 500px; border-radius: 24px 24px 0 0;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .modal-overlay.open .modal-content { transform: translateY(0); }
+  
+  .modal-title { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
+  
+  .map-option {
+    display: flex; align-items: center; gap: 16px; padding: 16px;
+    background: rgba(255,255,255,0.05); border-radius: 16px; margin-bottom: 12px;
+    cursor: pointer; text-decoration: none; color: var(--text-main);
+    transition: background 0.2s;
+  }
+  .map-option:active { background: rgba(255,255,255,0.1); }
+  .map-option-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .map-option-icon svg { width: 24px; height: 24px; }
+  .map-option-text { font-size: 16px; font-weight: 600; }
+  
+  .btn-cancel {
+    width: 100%; padding: 16px; background: rgba(255,255,255,0.1); border: none;
+    border-radius: 16px; color: var(--text-main); font-size: 16px; font-weight: 600;
+    margin-top: 8px; cursor: pointer;
+  }
+  .btn-cancel:active { background: rgba(255,255,255,0.15); }
 </style>
 </head>
 <body>
 
-<!-- هدر بالا -->
 <header class="header">
   <button class="icon-btn" onclick="toggleDrawer()">
     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -179,7 +211,6 @@
   </a>
 </header>
 
-<!-- منوی کشویی -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -189,7 +220,6 @@
   <div class="drawer-list" id="drawerList"></div>
 </div>
 
-<!-- محتوای اصلی -->
 <div class="container" id="app">
   <div class="loading">
     <div class="spinner"></div>
@@ -197,14 +227,40 @@
   </div>
 </div>
 
-<script>
-// ⚠️ لینک API خودتون رو اینجا بذارید
-const API_URL = "https://script.google.com/macros/s/AKfycbzGvQ8Df4717X6G1lXo9rAJp6EP-oJwg8PlhadcA6tZBDG-R933cPtruoSZEf1cGWDA/exec";
+<!-- مودال انتخاب اپ ناوبری -->
+<div class="modal-overlay" id="mapModal" onclick="closeMapModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-title">Deschide locația cu...</div>
+    
+    <a href="#" id="btnAppleMaps" class="map-option" target="_blank">
+      <div class="map-option-icon" style="background: linear-gradient(135deg, #34C759, #28a745);">
+        <svg viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      </div>
+      <div class="map-option-text">Apple Maps</div>
+    </a>
+    
+    <a href="#" id="btnGoogleMaps" class="map-option" target="_blank">
+      <div class="map-option-icon" style="background: white;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="#4285F4"></circle></svg>
+      </div>
+      <div class="map-option-text">Google Maps</div>
+    </a>
 
-// ⚠️ لینک سایتی که میخواید دکمه بالای صفحه (📍) به اون بره
+    <a href="#" id="btnWaze" class="map-option" target="_blank">
+      <div class="map-option-icon" style="background: #33ccff;">
+        <svg viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      </div>
+      <div class="map-option-text">Waze</div>
+    </a>
+    
+    <button class="btn-cancel" onclick="closeMapModal()">Anulează</button>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzGvQ8Df4717X6G1lXo9rAJp6EP-oJwg8PlhadcA6tZBDG-R933cPtruoSZEf1cGWDA/exec";
 const HEADER_LOCATION_URL = "https://aytlidergroup.github.io/Ayt-Locatie/";
 
-// تنظیم لینک دکمه هدر
 document.getElementById("headerLocationBtn").href = HEADER_LOCATION_URL;
 
 let courses = [];
@@ -280,11 +336,10 @@ function render() {
           </div>`).join("")
       : `<div style="padding:12px; color:var(--text-muted); text-align:center; font-size:13px;">Niciun produs adăugat</div>`;
 
-    // منطق دکمه لوکیشن
     let locationBtnHtml = "";
     if (cu.location) {
       locationBtnHtml = `
-        <div class="btn-location" onclick="event.stopPropagation(); openNativeNavigation('${escape(cu.location)}')" title="Deschide harta">
+        <div class="btn-location" onclick="event.stopPropagation(); openMapModal('${escape(cu.location)}')" title="Deschide harta">
           <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
         </div>`;
     } else {
@@ -322,45 +377,47 @@ function toggleStore(i) {
   el.classList.toggle("open"); 
 }
 
-// --- باز کردن اپ ناوبری خود گوشی ---
-function openNativeNavigation(locationStr) {
+// --- مودال انتخاب اپ ناوبری ---
+let currentLocationStr = "";
+
+function openMapModal(locationStr) {
+  currentLocationStr = locationStr;
   const isUrl = locationStr.startsWith("http");
-  let targetUrl = "";
   
-  // تشخیص سیستم‌عامل
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isAndroid = /Android/.test(navigator.userAgent);
-
+  // 1. لینک Google Maps
+  const gMapsUrl = isUrl ? locationStr : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationStr)}`;
+  document.getElementById("btnGoogleMaps").href = gMapsUrl;
+  
+  // 2. لینک Apple Maps
+  let aMapsUrl = "";
   if (isUrl) {
-    // اگر توی شیت یه لینک کامل گوگل مپ گذاشتید، همون رو باز میکنه
-    targetUrl = locationStr;
+    aMapsUrl = locationStr;
+  } else if (locationStr.includes(",") && !isNaN(locationStr.split(",")[0])) {
+    aMapsUrl = `https://maps.apple.com/?ll=${locationStr}`;
   } else {
-    // اگر آدرس متنی یا مختصات بود
-    // مختصات رو تبدیل میکنیم به فرمت استاندارد
-    let encodedLoc = "";
-    
-    if (locationStr.includes(",") && !isNaN(locationStr.split(",")[0])) {
-      // فرمت: 44.4,26.1
-      encodedLoc = locationStr;
-    } else {
-      // فرمت: آدرس متنی
-      encodedLoc = encodeURIComponent(locationStr);
-    }
-
-    if (isIOS) {
-      // در آیفون: استفاده از maps:// باعث میشه منوی انتخاب اپ باز بشه
-      targetUrl = `maps://?q=${encodedLoc}`;
-    } else if (isAndroid) {
-      // در اندروید: استفاده از geo: باعث میشه منوی انتخاب اپ باز بشه
-      targetUrl = `geo:0,0?q=${encodedLoc}`;
-    } else {
-      // در دسکتاپ
-      targetUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLoc}`;
-    }
+    aMapsUrl = `https://maps.apple.com/?q=${encodeURIComponent(locationStr)}`;
   }
+  document.getElementById("btnAppleMaps").href = aMapsUrl;
 
-  // باز کردن لینک در تب جدید
-  window.open(targetUrl, '_blank');
+  // 3. لینک Waze (با استفاده از Deep Link رسمی)
+  // اگر مختصات باشد از ll استفاده میکنیم، اگر آدرس متنی باشد از q
+  let wazeUrl = "";
+  if (isUrl) {
+    // اگر لینک گوگل مپ بود، سعی میکنیم مختصات را استخراج کنیم (خیلی ساده)
+    wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(locationStr)}`;
+  } else if (locationStr.includes(",") && !isNaN(locationStr.split(",")[0])) {
+    wazeUrl = `https://waze.com/ul?ll=${locationStr}&navigate=yes`;
+  } else {
+    wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(locationStr)}`;
+  }
+  document.getElementById("btnWaze").href = wazeUrl;
+
+  document.getElementById("mapModal").classList.add("open");
+}
+
+function closeMapModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById("mapModal").classList.remove("open");
 }
 
 function escape(s) {
