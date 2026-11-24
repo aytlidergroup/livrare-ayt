@@ -333,6 +333,24 @@ async function loadData() {
     document.getElementById("app").innerHTML = `<div class="error">Eroare de conexiune.<br>Vă rugăm verificați internetul.</div>`;
   }
 }
+async function refreshData() {
+  if (dragState.active) return;
+  const btn = document.getElementById("refreshBtn");
+  if (btn.classList.contains("spinning")) return;
+  btn.classList.add("spinning");
+  try {
+    const res = await fetch(API_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const data = await res.json();
+    courses = data.courses || [];
+    if (activeTab >= courses.length) activeTab = 0;
+    render();
+    showToast("✅ Date actualizate", 1800);
+  } catch (e) {
+    showToast("❌ Eroare de conexiune", 3000);
+  } finally {
+    btn.classList.remove("spinning");
+  }
+}
 
 function showToast(msg, duration = 2000) {
   const toast = document.getElementById("toast");
