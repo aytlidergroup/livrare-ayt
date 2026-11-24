@@ -23,6 +23,8 @@
     --border-radius: 20px;
     --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
@@ -247,6 +249,15 @@
   <a href="#" id="headerLocationBtn" target="_blank" class="icon-btn" title="Deschide link">
     <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
   </a>
+  <div class="header-actions">
+    <button class="icon-btn" id="refreshBtn" onclick="refreshData()" title="Reîmprospătare">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+    </button>
+    <a href="#" id="headerLocationBtn" target="_blank" class="icon-btn" title="Deschide link">
+      <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+    </a>
+  </div>
+
 </header>
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
