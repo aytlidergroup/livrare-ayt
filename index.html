@@ -23,9 +23,7 @@
     --border-radius: 20px;
     --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  .header-actions { display: flex; gap: 8px; }
-  .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
-
+  
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
   body {
@@ -60,6 +58,10 @@
   .header-center { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center; overflow: hidden; }
   .header-logo { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #000; border: 1px solid rgba(212, 175, 55, 0.3); }
   .header-title { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
+  .header { gap: 8px; }
+  .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .header-actions .icon-btn { width: 40px; height: 40px; border-radius: 12px; }
+  .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
 
   .drawer-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.5);
@@ -233,22 +235,19 @@
   }
   .btn-cancel:active { background: rgba(255,255,255,0.15); }
 </style>
+
 </head>
 <body>
-
 <header class="header">
   <button class="icon-btn" onclick="toggleDrawer()">
     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
   </button>
-  
+
   <div class="header-center">
     <img src="images.jpg" alt="AYT Logo" class="header-logo">
     <div class="header-title" id="headerTitle">Se încarcă...</div>
   </div>
-  
-  <a href="#" id="headerLocationBtn" target="_blank" class="icon-btn" title="Deschide link">
-    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-  </a>
+
   <div class="header-actions">
     <button class="icon-btn" id="refreshBtn" onclick="refreshData()" title="Reîmprospătare">
       <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
@@ -257,8 +256,8 @@
       <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
     </a>
   </div>
-
 </header>
+
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 <div class="drawer" id="drawer">
